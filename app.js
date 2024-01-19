@@ -2,6 +2,8 @@ const gameBoard = document.querySelector("#gameboard");
 const playerDisplay = document.querySelector("#player");
 const infoDisplay = document.querySelector("#info-display");
 const width = 8;
+let playerGo = "black";
+playerDisplay.textContent = "black";
 
 const startPieces = [
   rook,
@@ -75,7 +77,7 @@ function creatBoard() {
     const square = document.createElement("div");
     square.classList.add("square");
     square.innerHTML = startPiece;
-    square.firstChild?.setAttribute('draggable', true);
+    square.firstChild?.setAttribute("draggable", true);
     square.setAttribute("square-id", i);
     // square.classList.add('beige');
     const row = Math.floor((63 - i) / 8) + 1;
@@ -96,28 +98,84 @@ function creatBoard() {
 
 creatBoard();
 
-const allSquares = document.querySelectorAll('#gameboard .square');
+const allSquares = document.querySelectorAll(".square");
 
-allSquares.forEach(square=>{
-  square.addEventListener('dragstart',dragStart);
-  square.addEventListener('dragover',dragOver);
-  square.addEventListener('drop',dragDrop);
-})
+allSquares.forEach((square) => {
+  square.addEventListener("dragstart", dragStart);
+  square.addEventListener("dragover", dragOver);
+  square.addEventListener("drop", dragDrop);
+});
 
 let startPositionId;
 let draggedElement;
 
-function dragStart(e){
-  startPositionId = e.target.parentNode.getAttribute('square-id');
+function dragStart(e) {
+  startPositionId = e.target.parentNode.getAttribute("square-id");
   draggedElement = e.target;
 }
 
-function dragOver(e){
-    e.preventDefault()
+function dragOver(e) {
+  e.preventDefault();
 }
 
-function dragDrop(e){
+function dragDrop(e) {
   e.stopPropagation();
-  // e.parentNode.append(draggedElement);
-  e.target.append(draggedElement);
+  const correctGo = draggedElement.firstChild.classList.contains(playerGo);
+  const taken = e.target.classList.contains("pieces");
+  const valid = checkIfValid(e.target);
+  const opponentGo = playerGo === "white" ? "black" : "white";
+  const takenByOpponent = e.target.firstChild?.classList.contains(opponentGo);
+
+  if (correctGo) {
+    if (takenByOpponent && valid) {
+      e.parentNode.append(draggedElement);
+      e.target.remove();
+      changePlayer();
+      return;
+    }
+  }
+
+  if (taken && !takenByOpponent) {
+    infoDisplay.textContent = "You cannot go here";
+    setTimeout((infoDisplay.textContent = ""), 2000);
+    return;
+  }
+  if (valid) {
+    e.target.append(draggedElement);
+    changePlayer();
+    return;
+  }
+}
+
+function changePlayer() {
+  if (playerGo === "black") {
+    reverseIDs();
+    playerGo = "white";
+    playerDisplay.textContent = "white";
+  } else {
+    revertIds();
+    playerGo = "black";
+    playerDisplay.textContent = "black";
+  }
+}
+
+function reverseIDs() {
+  const allSquares = document.querySelectorAll(".square");
+  allSquares.forEach((square, i) =>
+    square.setAttribute("square-id", width * width - 1 - i)
+  );
+}
+
+function revertIds() {
+  const allSquares = document.querySelectorAll(".square");
+  allSquares.forEach((square, id) => square.setAttribute("square-id"), i);
+}
+
+function checkIfValid(target) {
+  const targetId =
+    Number(target.getAttribute("square-id")) ||
+    Number(target.parentNode.getAttribute("parent-id"));
+  const startId = Number(startPositionId);
+  const piece  = draggedElement.id;
+  console.log(piece);
 }
