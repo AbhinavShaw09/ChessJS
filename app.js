@@ -72,7 +72,7 @@ const startPieces = [
   rook,
 ];
 
-function creatBoard() {
+function createBoard() {
   startPieces.forEach((startPiece, i) => {
     const square = document.createElement("div");
     square.classList.add("square");
@@ -96,7 +96,7 @@ function creatBoard() {
   });
 }
 
-creatBoard();
+createBoard();
 
 const allSquares = document.querySelectorAll(".square");
 
@@ -118,17 +118,43 @@ function dragOver(e) {
   e.preventDefault();
 }
 
+function checkIfValid(target) {
+  const targetId =
+    Number(target.getAttribute("square-id")) ||
+    Number(target.parentNode.getAttribute("square-id"));
+  const startId = Number(startPositionId);
+  const piece = draggedElement.id;
+  switch (piece) {
+    case "pawn":
+      const starterRow = [8, 9, 10, 11, 12, 13, 14, 15];
+      if (
+        (starterRow.includes(startId) && startId + width * 2 === targetId) ||
+        startId + width === targetId ||
+        (Number(startId + width - 1) === targetId &&
+          document.querySelector(`[square-id = "${startId + width - 1}"]`)
+            .firstChild) ||
+        (Number(startId + width + 1) === targetId &&
+          document.querySelector(`[square-id = "${startId + width + 1}"]`)
+            .firstChild)
+      ) {
+        return true;
+      }
+      break;
+    case "knight":
+  }
+}
+
 function dragDrop(e) {
   e.stopPropagation();
   const correctGo = draggedElement.firstChild.classList.contains(playerGo);
   const taken = e.target.classList.contains("pieces");
   const valid = checkIfValid(e.target);
+
   const opponentGo = playerGo === "white" ? "black" : "white";
   const takenByOpponent = e.target.firstChild?.classList.contains(opponentGo);
-
   if (correctGo) {
     if (takenByOpponent && valid) {
-      e.parentNode.append(draggedElement);
+      e.target.parentNode.append(draggedElement);
       e.target.remove();
       changePlayer();
       return;
@@ -168,14 +194,5 @@ function reverseIDs() {
 
 function revertIds() {
   const allSquares = document.querySelectorAll(".square");
-  allSquares.forEach((square, id) => square.setAttribute("square-id"), i);
-}
-
-function checkIfValid(target) {
-  const targetId =
-    Number(target.getAttribute("square-id")) ||
-    Number(target.parentNode.getAttribute("parent-id"));
-  const startId = Number(startPositionId);
-  const piece  = draggedElement.id;
-  console.log(piece);
+  allSquares.forEach((square, i) => square.setAttribute("square-id", i));
 }
